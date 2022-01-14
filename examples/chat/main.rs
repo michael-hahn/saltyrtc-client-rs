@@ -280,7 +280,7 @@ fn main() {
 
     // Connect to server
     let (connect_future, event_channel) = saltyrtc_client::connect(
-        "localhost",
+        "172.19.0.2",
         8765,
         Some(tls_connector),
         &core.handle(),
