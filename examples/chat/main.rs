@@ -154,8 +154,22 @@ fn main() {
         }
     };
 
+    // Create or restore public permanent keypair
+    let keypair = if is_trusted {
+        let private_key_hex = args.value_of(ARG_PRIVATE_KEY).unwrap();
+        let private_key = private_key_from_hex_str(private_key_hex).unwrap();
+        KeyPair::from_private_key(private_key)
+    } else {
+        KeyPair::new()
+    };
+    let own_pubkey_hex = keypair.public_key_hex();
+    let own_privkey_hex = keypair.private_key_hex();
+
+
     // Set up logging
-    let log_handle = log4rs::init_config(setup_logging(role, true)).unwrap();
+    let log_handle = log4rs::init_config(setup_logging(role, &own_pubkey_hex, true)).unwrap();
+
+    warn!("Pubkey: {}", &own_pubkey_hex);
 
     // Tokio reactor core
     let mut core = Core::new().unwrap();
@@ -179,17 +193,6 @@ fn main() {
         .add_root_certificate(server_cert)
         .build()
         .unwrap_or_else(|e| panic!("Could not initialize TlsConnector: {}", e));
-
-    // Create or restore public permanent keypair
-    let keypair = if is_trusted {
-        let private_key_hex = args.value_of(ARG_PRIVATE_KEY).unwrap();
-        let private_key = private_key_from_hex_str(private_key_hex).unwrap();
-        KeyPair::from_private_key(private_key)
-    } else {
-        KeyPair::new()
-    };
-    let own_pubkey_hex = keypair.public_key_hex();
-    let own_privkey_hex = keypair.private_key_hex();
 
     // Determine websocket path
     let path: String = match role {
@@ -327,7 +330,7 @@ fn main() {
         "Starting TUI and disabling logging to stdout. See `chat.{}.log` for logs.",
         role.to_string().to_lowercase()
     );
-    log_handle.set_config(setup_logging(role, false));
+    log_handle.set_config(setup_logging(role, &own_pubkey_hex, false));
 
     // Launch TUI thread
     let (cb_sink_tx, cb_sink_rx) = std_mpsc::sync_channel(1);
@@ -568,7 +571,7 @@ fn main() {
     info!("Goodbye!");
 }
 
-fn setup_logging(role: Role, log_to_stdout: bool) -> Config {
+fn setup_logging(role: Role, pubkey: &String, log_to_stdout: bool) -> Config {
     // Log format
     let format = "{d(%Y-%m-%dT%H:%M:%S%.3f)} [{l:<5}] {m} (({f}:{L})){n}";
 
@@ -579,8 +582,8 @@ fn setup_logging(role: Role, log_to_stdout: bool) -> Config {
     let file = FileAppender::builder()
         .encoder(Box::new(PatternEncoder::new(format)))
         .build(match role {
-            Role::Initiator => "chat.initiator.log",
-            Role::Responder => "chat.responder.log",
+            Role::Initiator => format!("./logs/chat.initiator.{}.log", pubkey),
+            Role::Responder => format!("./logs/chat.responder.{}.log", pubkey)
         })
         .unwrap();
 
