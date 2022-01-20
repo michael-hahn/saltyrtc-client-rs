@@ -600,8 +600,8 @@ fn setup_logging(role: Role, pubkey: &String, log_to_stdout: bool) -> Config {
         )
         .appender(Appender::builder().build("file", Box::new(file)))
         // Loggers
-        .logger(Logger::builder().build("saltyrtc_client", LevelFilter::Trace))
-        .logger(Logger::builder().build("chat", LevelFilter::Trace));
+        .logger(Logger::builder().build("saltyrtc_client", LevelFilter::Info))
+        .logger(Logger::builder().build("chat", LevelFilter::Info));
 
     // Root logger
     let root = match log_to_stdout {

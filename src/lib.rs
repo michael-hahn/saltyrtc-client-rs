@@ -471,7 +471,7 @@ pub fn connect(
                 .read()
                 .map(|s| s.role().to_string())
                 .unwrap_or_else(|_| "Unknown".to_string());
-            info!("Connected to server as {}", role);
+            warn!("Connected to server as {}", role);
             client
         });
     debug!("Created WS connect future");

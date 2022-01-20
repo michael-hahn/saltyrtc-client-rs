@@ -855,7 +855,7 @@ pub(crate) trait Signaling {
         // Moreover, the client MUST do some checks depending on its role
         let actions = self.handle_server_auth_impl(&msg)?;
 
-        info!("Server handshake completed");
+        warn!("Server handshake completed");
         self.server_mut()
             .set_handshake_state(ServerHandshakeState::Done);
         self.common_mut()
@@ -1729,7 +1729,7 @@ impl InitiatorSignaling {
         // State transitions
         responder.set_handshake_state(ResponderHandshakeState::AuthSent);
         self.common.set_signaling_state(SignalingState::Task)?;
-        info!("Peer handshake completed");
+        warn!("Peer handshake completed");
         actions.push(HandleAction::HandshakeDone);
 
         self.responder = Some(responder);
@@ -2323,7 +2323,7 @@ impl ResponderSignaling {
         self.initiator
             .set_handshake_state(InitiatorHandshakeState::AuthReceived);
         self.common.set_signaling_state(SignalingState::Task)?;
-        info!("Peer handshake completed");
+        warn!("Peer handshake completed");
 
         Ok(vec![HandleAction::HandshakeDone])
     }
